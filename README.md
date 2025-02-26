@@ -60,7 +60,7 @@ python shared_semantics.py \
     ...
 ```
 ### 5. Using Hard Negative Samples
-The hard negative code followed the LAHN repository
+The hard negative code followed the LAHN repository  
 https://github.com/Hanyang-HCC-Lab/LAHN
 ```sh
 python train_hard_negative.py
