@@ -15,6 +15,8 @@ $ pip install -r requirements.txt
 ## Module Setting
 Modify the `start.sh` file.
 ### 1. SharedCon (default)
+The baseline code followed the sharedcon repository
+https://github.com/hsannn/sharedcon
 ```sh
 python shared_semantics.py \
 	--cluster_num {num_of_clusters} \
@@ -58,6 +60,8 @@ python shared_semantics.py \
     ...
 ```
 ### 5. Using Hard Negative Samples
+The hard negative code followed the LAHN repository
+https://github.com/Hanyang-HCC-Lab/LAHN
 ```sh
 python train_hard_negative.py
 ```
@@ -91,7 +95,8 @@ EOF
 - `threshold` = `True` or `False` (remove outliers)
 - `use_ner` = `True` or `False`
 
-### 2. Modify the `train_config.py` file
+### 2. Modify the config file
+Modify `train_config.py` or `train_config_lahn.py` file.
 
 
 ### 3. Start train
