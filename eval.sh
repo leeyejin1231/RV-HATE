@@ -1,7 +1,3 @@
-#!/bin/bash
-#SBATCH -J yejin
-#SBATCH --output=eval.out
-
 echo "### eval start"
 echo "### START DATE=$(date)"
 

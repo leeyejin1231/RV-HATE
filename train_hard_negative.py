@@ -10,7 +10,7 @@ import torch.utils.data
 from torch import nn
 import torch.nn.functional as F
 
-import train_config_lahn as train_config
+import train_hard_negative_config as train_config
 from utils import iter_product, get_dataloader
 from sklearn.metrics import f1_score
 from model import primary_encoder_v2_no_pooler_for_con, LAHN, SupConLoss
