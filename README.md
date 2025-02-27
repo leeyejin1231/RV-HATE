@@ -119,3 +119,8 @@ Set the model paths.
 $ chmod +x eval.sh 
 $ ./eval.sh
 ```
+
+
+## Acknowlegement
+Our code is based on the code from https://github.com/hsannn/sharedcon.  
+Also, hard negative smaple follows the code from https://github.com/Hanyang-HCC-Lab/LAHN.
