@@ -6,7 +6,7 @@ We develop five specialized modules designed to capture diverse dataset-specific
 Datset file route: `./raw_datasets/{dataset_name}/`  
 Dataset split: Train, Vaild, Test (8:1:1)  
 
-We use the `IHC`, `SBIC`, `DYNA`, `Hateval` and `Toxigen` datasets.
+We used the `IHC`, `SBIC`, `DYNA`, `Hateval` and `Toxigen` datasets.
 
 ## Install requirements
 ```bash
@@ -19,9 +19,9 @@ The baseline code followed the sharedcon repository
 https://github.com/hsannn/sharedcon
 ```sh
 python shared_semantics.py \
-	--cluster_num {num_of_clusters} \
-	--load_dataset {dataset name} \
-	--load_sent_emb_model {embedding model name} \
+    --cluster_num {num_of_clusters} \
+    --load_dataset {dataset name} \
+    --load_sent_emb_model {embedding model name} \
     --center_type euclidean \
     --threshold False
     --use_ner False
@@ -70,9 +70,9 @@ python train_hard_negative.py
 ### 1. Modify the `shart.sh` file
 ```sh
 python shared_semantics.py \
-	--cluster_num 20 \
-	--load_dataset toxigen \
-	--load_sent_emb_model toxi-sim \
+    --cluster_num 20 \
+    --load_dataset toxigen \
+    --load_sent_emb_model toxi-sim \
     --center_type euclidean \
     --threshold False
     --use_ner False
