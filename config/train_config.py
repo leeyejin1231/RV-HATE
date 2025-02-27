@@ -1,5 +1,5 @@
 
-dataset = ["toxi-sim_toxigen_c20"]
+dataset = ["toxigen_c20"]
 
 tuning_param  = ["lambda_loss", "main_learning_rate","train_batch_size","eval_batch_size","nepoch","temperature","SEED","dataset", "decay"] ## list of possible paramters to be tuned
 train_batch_size = [8]

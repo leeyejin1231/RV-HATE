@@ -9,7 +9,7 @@ import json
 import torch
 import torch.utils.data
 
-import eval_config as train_config
+from config import eval_config as train_config
 from utils import iter_product, get_dataloader
 from sklearn.metrics import f1_score
 

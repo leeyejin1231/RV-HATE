@@ -10,10 +10,10 @@ import torch
 import torch.utils.data
 from torch import nn
 
-import train_config as train_config
+from config import train_config
 from utils import get_dataloader, iter_product
 from sklearn.metrics import f1_score
-from model import primary_encoder_v2_no_pooler_for_con, SupConLoss
+from model import primary_encoder_v2_no_pooler_for_con, SupConLoss, SupConLoss_for_double
 
 from transformers import AdamW,get_linear_schedule_with_warmup, BertForSequenceClassification 
 
@@ -298,7 +298,7 @@ def cl_train(log):
     train_data,valid_data,test_data = get_dataloader(log.param.train_batch_size,log.param.eval_batch_size,log.param.dataset,w_aug=log.param.w_aug,w_double=log.param.w_double,label_list=None)
     print("len(train_data):", len(train_data)) 
 
-    losses = {"contrastive":SupConLoss(temperature=log.param.temperature),"ce_loss":nn.CrossEntropyLoss(),"lambda_loss":log.param.lambda_loss,"contrastive_for_double":loss_sharedcon.SupConLoss_for_double(temperature=log.param.temperature)}
+    losses = {"contrastive":SupConLoss(temperature=log.param.temperature),"ce_loss":nn.CrossEntropyLoss(),"lambda_loss":log.param.lambda_loss,"contrastive_for_double":SupConLoss_for_double(temperature=log.param.temperature)}
 
     model_run_time = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
 

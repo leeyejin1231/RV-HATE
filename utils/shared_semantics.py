@@ -5,9 +5,13 @@ import random
 import argparse
 from transformers import AutoTokenizer
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+import sys
+sys.path.append("/home/yejin/contents/V-HATE/")
+
 from simcse import SimCSE
 import torch
-from .clustering import Clustering
+from utils import Clustering
 
 device = torch.device('cuda')
 
@@ -19,11 +23,11 @@ random.seed(0)
 def cluster_n_select(dataset, sent_emb_model, input_col, center_type, args, is_train="False", is_not_hate=None, use_ner="False"):
     
     if use_ner == "True":
-        simcse = AutoTokenizer.from_pretrained(f"sent_emb_model", device=device)
+        simcse = AutoTokenizer.from_pretrained(f"{sent_emb_model}", device=device)
         new_tokens = ["[TARGET]"]
         simcse.add_tokens(new_tokens)
     else:
-        simcse = SimCSE(f"sent_emb_model", device=device)
+        simcse = SimCSE(f"{sent_emb_model}", device=device)
     
     clustering = Clustering(int(args.cluster_num), dataset, input_col, simcse, use_ner)
 
@@ -81,33 +85,33 @@ if __name__ == '__main__':
 
     # load raw dataset
     if args.load_dataset == "ihc_pure":
-        train_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'train.tsv'), delimiter='\t', header=0)
-        valid_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'valid.tsv'), delimiter='\t', header=0)
-        test_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'test.tsv'), delimiter='\t', header=0)
+        train_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'train.tsv'), delimiter='\t', header=0)
+        valid_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'valid.tsv'), delimiter='\t', header=0)
+        test_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'test.tsv'), delimiter='\t', header=0)
         input_col = 'post'
         class_col = 'class'
         hate_class = "implicit_hate"
         not_hate_class = "not_hate"
     elif args.load_dataset == "sbic":
-        train_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'train.csv'), delimiter=',', header=0)
-        valid_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'dev.csv'), delimiter=',', header=0)
-        test_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'test.csv'), delimiter=',', header=0)
+        train_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'train.csv'), delimiter=',', header=0)
+        valid_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'dev.csv'), delimiter=',', header=0)
+        test_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'test.csv'), delimiter=',', header=0)
         input_col = 'post'
         class_col = 'offensiveLABEL'
         hate_class = "offensive"
         not_hate_class = "not_offensive"
     elif args.load_dataset == "dynahate":
-        train_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'train.csv'), delimiter=',', header=0)
-        valid_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'dev.csv'), delimiter=',', header=0)
-        test_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'test.csv'), delimiter=',', header=0)
+        train_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'train.csv'), delimiter=',', header=0)
+        valid_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'dev.csv'), delimiter=',', header=0)
+        test_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'test.csv'), delimiter=',', header=0)
         input_col = 'text'
         class_col = 'label'
         hate_class = "hate"
         not_hate_class = "nothate"
     elif args.load_dataset == "hateval" or args.load_dataset == "toxigen" or args.load_dataset == "white" or args.load_dataset == "union":
-        train_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'train.csv'), delimiter=',', header=0)
-        valid_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'valid.csv'), delimiter=',', header=0)
-        test_dataset = pd.read_csv(os.path.join('raw_dataset', args.load_dataset, 'test.csv'), delimiter=',', header=0)
+        train_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'train.csv'), delimiter=',', header=0)
+        valid_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'valid.csv'), delimiter=',', header=0)
+        test_dataset = pd.read_csv(os.path.join('./raw_dataset', args.load_dataset, 'test.csv'), delimiter=',', header=0)
         input_col = 'post'
         class_col = 'label'
         hate_class = 1
@@ -176,12 +180,12 @@ if __name__ == '__main__':
         model_name = "simcse"
     else:
         model_name = args.load_sent_emb_model
-    os.makedirs(f"clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", exist_ok=True)
+    os.makedirs(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", exist_ok=True)
     if args.load_dataset == "ihc_pure":
-        total_train_dataset.to_csv(os.path.join(f"clustered_dataset/{args.load_sent_emb_model}/{args.load_dataset}_c{args.cluster_num}", "train.tsv"), sep="\t", index=False)
-        total_valid_dataset.to_csv(os.path.join(f"clustered_dataset/{args.load_sent_emb_model}/{args.load_dataset}_c{args.cluster_num}", "valid.tsv"), sep="\t", index=False)
-        total_test_dataset.to_csv(os.path.join(f"clustered_dataset/{args.load_sent_emb_model}/{args.load_dataset}_c{args.cluster_num}", "test.tsv"), sep="\t", index=False)
+        total_train_dataset.to_csv(os.path.join(f"./clustered_dataset/{args.load_sent_emb_model}/{args.load_dataset}_c{args.cluster_num}", "train.tsv"), sep="\t", index=False)
+        total_valid_dataset.to_csv(os.path.join(f"./clustered_dataset/{args.load_sent_emb_model}/{args.load_dataset}_c{args.cluster_num}", "valid.tsv"), sep="\t", index=False)
+        total_test_dataset.to_csv(os.path.join(f"./clustered_dataset/{args.load_sent_emb_model}/{args.load_dataset}_c{args.cluster_num}", "test.tsv"), sep="\t", index=False)
     else:
-        total_train_dataset.to_csv(os.path.join(f"clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", "train.csv"), sep=",", index=False)
-        total_valid_dataset.to_csv(os.path.join(f"clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", "valid.csv"), sep=",", index=False)
-        total_test_dataset.to_csv(os.path.join(f"clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", "test.csv"), sep=",", index=False)
+        total_train_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", "train.csv"), sep=",", index=False)
+        total_valid_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", "valid.csv"), sep=",", index=False)
+        total_test_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", "test.csv"), sep=",", index=False)

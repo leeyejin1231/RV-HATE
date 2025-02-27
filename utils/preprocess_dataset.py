@@ -16,11 +16,11 @@ random.seed(0)
 
 
 def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
-	os.makedirs("preprocessed_data", exist_ok=True)
+	os.makedirs("./preprocessed_data", exist_ok=True)
 
 	if "ihc" in dataset:
 		class2int = {'not_hate':0 ,'implicit_hate': 1}
-		data_home = f"clustered_dataset/{sent_emb_model}/{dataset}/"
+		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}/"
 		data_dict = {}
 
 		for datatype in ["train","valid","test"]:
@@ -93,9 +93,9 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 				data_dict[datatype] = processed_data
 
 		
-		with open(f"./preprocessed_data/preprocessed_{sent_emb_model}_{dataset}.pkl", 'wb') as f:
+		with open(f"./preprocessed_data/preprocessed_{dataset}.pkl", 'wb') as f:
 			pickle.dump(data_dict, f)
-		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{sent_emb_model}_{dataset}.pkl')
+		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}.pkl')
 
 
 
@@ -103,7 +103,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 	elif "sbic" in dataset:
 		class2int = {'not_offensive':0 ,'offensive': 1}
 		data_dict = {}
-		data_home = f"clustered_dataset/{sent_emb_model}/{dataset}/"
+		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}/"
 
 		for datatype in ["train","valid","test"]:
 			datafile = data_home + datatype + ".csv"
@@ -174,9 +174,9 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 				processed_data = pd.DataFrame.from_dict(processed_data)
 				data_dict[datatype] = processed_data
 
-		with open(f"./preprocessed_data/preprocessed_{sent_emb_model}_{dataset}.pkl", 'wb') as f:
+		with open(f"./preprocessed_data/preprocessed_{dataset}.pkl", 'wb') as f:
 			pickle.dump(data_dict, f)
-		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{sent_emb_model}_{dataset}.pkl')
+		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}.pkl')
 
 
 
@@ -184,7 +184,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 	elif "dynahate" in dataset:
 		class2int = {'nothate':0 ,'hate': 1}
 		data_dict = {}
-		data_home = f"clustered_dataset/{sent_emb_model}/{dataset}/"
+		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}/"
 
 		for datatype in ["train","valid","test"]:
 			datafile = data_home + datatype + ".csv"
@@ -259,14 +259,14 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 				processed_data = pd.DataFrame.from_dict(processed_data)
 				data_dict[datatype] = processed_data
 
-		with open(f"./preprocessed_data/preprocessed_{sent_emb_model}_{dataset}.pkl", 'wb') as f:
+		with open(f"./preprocessed_data/preprocessed_{dataset}.pkl", 'wb') as f:
 			pickle.dump(data_dict, f)
-		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{sent_emb_model}_{dataset}.pkl')
+		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}.pkl')
 	
 	elif "hateval" in dataset or "toxigen" in dataset or "white" in dataset or "union" in dataset:
 		# class2int = {'not_offensive':0 ,'offensive': 1}
 		data_dict = {}
-		data_home = f"clustered_dataset/{sent_emb_model}/{dataset}/"
+		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}/"
 
 		for datatype in ["train","valid","test"]:
 			datafile = data_home + datatype + ".csv"
@@ -341,9 +341,9 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 				processed_data = pd.DataFrame.from_dict(processed_data)
 				data_dict[datatype] = processed_data
 
-		with open(f"preprocessed_data/preprocessed_{sent_emb_model}_{dataset}.pkl", 'wb') as f:
+		with open(f"./preprocessed_data/preprocessed_{dataset}.pkl", 'wb') as f:
 			pickle.dump(data_dict, f)
-		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{sent_emb_model}_{dataset}.pkl')
+		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}.pkl')
 
 	else:
 		raise NotImplementedError
