@@ -96,7 +96,7 @@ EOF
 - `use_ner` = `True` or `False`
 
 ### 2. Modify the config file
-Modify `train_config.py` or `train_config_lahn.py` file.
+Modify `train_config.py` or `train_hard_negative_config.py` file.
 
 
 ### 3. Start train
