@@ -10,28 +10,29 @@ We develop five specialized modules designed to capture diverse dataset-specific
 ### ⚙️ Modules
 #### M1. Clustering-based Contrastive Learning
 
-We used **SharedCon** as base model.
+We used **[SharedCon](https://github.com/hsannn/sharedcon)** as base model.
 Groups similar sentences into clusters and selects the sample nearest the center as the anchor for contrastive learning. This approach helps capture shared semantic cues critical for detecting implicit hate speech.
 
 #### M2. Using Target Special Token with NER Tagger
-<image src='./images/M2.png' width='400px'>
+<image src='./images/M2.png' width='400px'>  
 
 Tags explicit mentions of specific groups (e.g., organizations) with a **[TARGET]** token.
 It helps the model distinguish hate speech from offensive but non-hateful remarks.
 
 #### M3. Remove Outliers in a Clustering
-<image src='./images/M3.png' width='400px'>
+<image src='./images/M3.png' width='400px'>  
+
 Identifies and removes outlier sentences (e.g., broken or noisy text) within each cluster.
 Reducing such noise enhances the clarity of each cluster’s representation.
 
 #### M4. Using Cosine Similarity
-<image src='./images/M4.png' width='400px'>
+<image src='./images/M4.png' width='400px'>  
 
 Uses cosine similarity, instead of Euclidean distance, when selecting the cluster center.
 Focusing on vector angles ensures more semantically coherent anchor selection.
 
 #### M5. Contrastive Learning with Hard Negative Samples
-<image src='./images/M5.png' width='400px'>
+<image src='./images/M5.png' width='400px'>  
 
 Adds “hard negatives” that have high similarity yet different labels, tightening the model’s decision boundary.
 This helps the model better differentiate subtle hate from non-hate content.
