@@ -4,8 +4,10 @@
 We develop five specialized modules designed to capture diverse dataset-specific characteristics.
 </br>
 <p align="center">
-    <image src='./images/overview.png' width='800px'>
+    <image src='./images/overview.png' width='700px'>
 </p>
+
+A key strength of this method is its modular design, where each component is fine-tuned to tackle specific challenges in hate speech detection, such as subtle target mentions, noisy data, and hard-to-detect "hard negatives." It can adapt to the unique characteristics of different datasets. Moreover, by using a voting system that integrates the strengths of all modules, it ensures more reliable and flexible detection results overall.
 
 ### ⚙️ Modules
 #### M1. Clustering-based Contrastive Learning
