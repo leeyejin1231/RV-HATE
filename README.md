@@ -1,22 +1,64 @@
-# V-HATE
-### V-HATE: Voting-based Implicit Hate Speech Detection
-We develop five specialized modules designed to capture diverse dataset-specific characteristics.  
-**V-HATE** is a voting-based framework that selects the optimal combination of modules for each dataset to enhance detection performance.  
-## Datasets
-Datset file route: `./raw_datasets/{dataset_name}/`  
+# V-HATE: Voting-based Implicit Hate Speech Detection
+## About V-HATE
+**V-HATE** is a voting-based framework that selects the optimal combination of modules for each dataset to enhance implicit hate speech detection performance.
+We develop five specialized modules designed to capture diverse dataset-specific characteristics.
+</br>
+<p align="center">
+    <image src='./images/overview.png' width='600px'>
+</p>
+
+### ⚙️ Modules
+#### M1. Clustering-based Contrastive Learning
+
+We used **SharedCon** as base model.
+Groups similar sentences into clusters and selects the sample nearest the center as the anchor for contrastive learning. This approach helps capture shared semantic cues critical for detecting implicit hate speech.
+
+#### M2. Using Target Special Token with NER Tagger
+<p align="center">
+    <image src='./images/M2.png' width='300px'>
+</p>
+
+Tags explicit mentions of specific groups (e.g., organizations) with a **[TARGET]** token.
+It helps the model distinguish hate speech from offensive but non-hateful remarks.
+
+#### M3. Remove Outliers in a Clustering
+<p align="center">
+    <image src='./images/M3.png' width='300px'>
+</p>
+Identifies and removes outlier sentences (e.g., broken or noisy text) within each cluster.
+Reducing such noise enhances the clarity of each cluster’s representation.
+
+#### M4. Using Cosine Similarity
+<p align="center">
+    <image src='./images/M4.png' width='300px'>
+</p>
+
+Uses cosine similarity, instead of Euclidean distance, when selecting the cluster center.
+Focusing on vector angles ensures more semantically coherent anchor selection.
+
+#### M5. Contrastive Learning with Hard Negative Samples
+<p align="center">
+    <image src='./images/M5.png' width='300px'>
+</p>
+
+Adds “hard negatives” that have high similarity yet different labels, tightening the model’s decision boundary.
+This helps the model better differentiate subtle hate from non-hate content.
+
+
+## 🛠️ Getting Started
+### 📚 Datasets
+Dataset file route: `./raw_datasets/{dataset_name}/`  
 Dataset split: Train, Vaild, Test (8:1:1)  
 
 We used the `IHC`, `SBIC`, `DYNA`, `Hateval` and `Toxigen` datasets.
 
-## Install requirements
+### Install requirements
 ```bash
 $ pip install -r requirements.txt
 ```
-## Module Setting
+### Module Setting
 Modify the `start.sh` file.
-### 1. SharedCon (default)
-The baseline code followed the sharedcon repository
-https://github.com/hsannn/sharedcon
+#### 1. SharedCon (default)
 ```sh
 python shared_semantics.py \
     --cluster_num {num_of_clusters} \
@@ -34,7 +76,7 @@ python preprocess_dataset.py \
     ...
 
 ```
-### 2. Using NER
+#### 2. Using NER
 ```sh
 python shared_semantics.py \
     ...
@@ -45,29 +87,27 @@ python preprocess_dataset.py \
     ...
     -n True
 ```
-### 3. Remove Outlier
+#### 3. Remove Outlier
 ```sh
 python shared_semantics.py \
     ...
     --threshold True
     ...
 ```
-### 4. Using Cosine Similarity
+#### 4. Using Cosine Similarity
 ```sh
 python shared_semantics.py \
     ...
     --center_type cosine
     ...
 ```
-### 5. Using Hard Negative Samples
-The hard negative code followed the LAHN repository  
-https://github.com/Hanyang-HCC-Lab/LAHN
+#### 5. Using Hard Negative Samples
 ```sh
 python train_hard_negative.py
 ```
 
-## Train
-### 1. Modify the `shart.sh` file
+### Train
+#### 1. Modify the `shart.sh` file
 ```sh
 python shared_semantics.py \
     --cluster_num 20 \
@@ -95,18 +135,18 @@ EOF
 - `threshold` = `True` or `False` (remove outliers)
 - `use_ner` = `True` or `False`
 
-### 2. Modify the config file
+#### 2. Modify the config file
 Modify `train_config.py` or `train_hard_negative_config.py` file.
 
 
-### 3. Start train
+#### 3. Start train
 ```bash
 $ chmod +x shart.sh 
 $ ./start.sh
 ```
 
-## Evaluation
-### 1. Modify the `eval_config.py` file
+### Evaluation
+#### 1. Modify the `eval_config.py` file
 Set the model paths.
 - base_model
 - ner_model_dir
@@ -114,7 +154,7 @@ Set the model paths.
 - outlier_model_dir
 - hard_negative_model_dir
 
-### 2. Test start
+#### 2. Test start
 ```bash
 $ chmod +x eval.sh 
 $ ./eval.sh
