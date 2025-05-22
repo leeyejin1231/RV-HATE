@@ -40,7 +40,7 @@ Adds “hard negatives” that have high similarity yet different labels, tighte
 This helps the model better differentiate subtle hate from non-hate content.
 
 
-## 🛠️ Getting Started
+## 🛠️ Getting Start
 ### 📚 Datasets
 Dataset file route: `./raw_datasets/{dataset_name}/`  
 Dataset split: Train, Vaild, Test (8:1:1)  
