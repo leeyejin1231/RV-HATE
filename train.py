@@ -21,7 +21,7 @@ from transformers import AdamW,get_linear_schedule_with_warmup, BertForSequenceC
 # Credits https://github.com/varsha33/LCL_loss
 def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log):
 
-    model_main.cuda()
+    model_main.cuda(log.param.cuda_id)
     model_main.train()
 
     total_true,total_pred_1,acc_curve_1 = [],[],[]
@@ -54,7 +54,7 @@ def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log
         assert log.param.w_double, "w_double should be set to True for w_separate=True option"
     
     for idx,batch in enumerate(train_loader):
-        if "ihc" in log.param.dataset or 'dynahate' in log.param.dataset or 'sbic' in log.param.dataset or 'toxi' in log.param.dataset:
+        if "ihc" in log.param.dataset or 'dynahate' in log.param.dataset or 'sbic' in log.param.dataset or 'toxi' in log.param.dataset or 'hateval' in log.param.dataset:
             text_name = "post"
             label_name1 = "label"
             label_name2 = "cluster_label"
@@ -76,10 +76,10 @@ def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log
             continue
 
         if torch.cuda.is_available():
-            text = text.cuda()
-            attn = attn.cuda()
-            label = label.cuda()
-            cluster_label = cluster_label.cuda()
+            text = text.cuda(log.param.cuda_id)
+            attn = attn.cuda(log.param.cuda_id)
+            label = label.cuda(log.param.cuda_id)
+            cluster_label = cluster_label.cuda(log.param.cuda_id)
 
         #####################################################################################
         if log.param.w_aug: # text split
@@ -137,12 +137,6 @@ def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log
                 original_attn, augmented_attn = torch.split(attn, [log.param.train_batch_size, log.param.train_batch_size], dim=0)
 
                 original_last_layer_hidden_states, original_supcon_feature_1 = model_main.get_cls_features_ptrnsp(original_text, original_attn) # #v2
-                # # print(f"original_last_layer_hidden_states: {original_last_layer_hidden_states}")
-                # # pred = model_main.pooler(original_last_layer_hidden_states)
-                # pred = model_main(original_last_layer_hidden_states)
-                # probabilities = F.softmax(pred, dim=1)
-                # print(f"pred: {probabilities}")
-                # exit(1)
 
                 _, augmented_supcon_feature_1 = model_main.get_cls_features_ptrnsp(augmented_text,augmented_attn) # #v2
 
@@ -231,7 +225,7 @@ def test(test_loader,model_main,log):
             elif "dynahate" in log.param.dataset:
                 text_name = "post"
                 label_name1 = "label"
-            elif "sbic" in log.param.dataset or 'toxi' in log.param.dataset:
+            elif "sbic" in log.param.dataset or 'toxi' in log.param.dataset or 'hateval' in log.param.dataset:
                 text_name = "post"
                 label_name1 = "label"
             else:
@@ -248,9 +242,9 @@ def test(test_loader,model_main,log):
             label = torch.autograd.Variable(label).long()
 
             if torch.cuda.is_available():
-                text = text.cuda()
-                attn = attn.cuda()
-                label = label.cuda()
+                text = text.cuda(log.param.cuda_id)
+                attn = attn.cuda(log.param.cuda_id)
+                label = label.cuda(log.param.cuda_id)
 
             last_layer_hidden_states, supcon_feature_1 = model_main.get_cls_features_ptrnsp(text,attn) # #v2
             pred_1 = model_main(last_layer_hidden_states)
@@ -295,10 +289,10 @@ def cl_train(log):
 
     print("#######################start run#######################")
     print("log:", log)
-    train_data,valid_data,test_data = get_dataloader(log.param.train_batch_size,log.param.eval_batch_size,log.param.dataset,w_aug=log.param.w_aug,w_double=log.param.w_double,label_list=None)
+    train_data,valid_data,test_data = get_dataloader(log.param.train_batch_size,log.param.eval_batch_size,log.param.dataset,w_aug=log.param.w_aug,w_double=log.param.w_double,label_list=None, type=log.param.type)
     print("len(train_data):", len(train_data)) 
 
-    losses = {"contrastive":SupConLoss(temperature=log.param.temperature),"ce_loss":nn.CrossEntropyLoss(),"lambda_loss":log.param.lambda_loss,"contrastive_for_double":SupConLoss_for_double(temperature=log.param.temperature)}
+    losses = {"contrastive":SupConLoss(temperature=log.param.temperature, device=torch.device('cuda:'+str(log.param.cuda_id))),"ce_loss":nn.CrossEntropyLoss(),"lambda_loss":log.param.lambda_loss,"contrastive_for_double":SupConLoss_for_double(temperature=log.param.temperature, device=torch.device('cuda:'+str(log.param.cuda_id)))}
 
     model_run_time = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
 
@@ -350,8 +344,8 @@ def cl_train(log):
         best_criterion = max(val_f1_1["macro"],best_criterion)
 
         print("Best model evaluated by macro f1")
-        print(f'Valid Accuracy: {val_acc_1:.2f} Valid F1: {val_f1_1["macro"]:.2f}')
-        print(f'Test Accuracy: {test_acc_1:.2f} Test F1: {test_f1_1["macro"]:.2f}')
+        print(f'Valid Accuracy: {val_acc_1:.2f} Valid F1: {val_f1_1["macro"]:.4f}')
+        print(f'Test Accuracy: {test_acc_1:.2f} Test F1: {test_f1_1["macro"]:.4f}')
 
 
         if is_best:

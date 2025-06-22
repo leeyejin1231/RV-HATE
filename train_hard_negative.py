@@ -36,10 +36,10 @@ class Similarity(nn.Module):
 # Credits https://github.com/varsha33/LCL_loss
 def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log, model_momentum, queue_features, queue_labels):
 
-    model_main.cuda()
+    model_main.cuda(1)
     model_main.train()
     if log.param.momentum > 0.0:
-        model_momentum.cuda()
+        model_momentum.cuda(1)
         model_momentum.eval()
 
     total_true,total_pred_1,acc_curve_1 = [],[],[]
@@ -49,7 +49,7 @@ def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log
     steps = 0
     start_train_time = time.time()
 
-    sim = Similarity(log.param.temperature)
+    sim = Similarity(log.param.temperature).cuda(1)
     
     if log.param.w_aug:
         if log.param.w_double:
@@ -90,9 +90,9 @@ def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log
             continue
 
         if torch.cuda.is_available():
-            text = text.cuda()
-            attn = attn.cuda()
-            label = label.cuda()
+            text = text.cuda(1)
+            attn = attn.cuda(1)
+            label = label.cuda(1)
             # print(label)
 
         #####################################################################################
@@ -127,7 +127,7 @@ def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log
                     #     _, augmented_supcon_feature_1 = model_main.get_cls_features_ptrnsp(augmented_text,augmented_attn)
 
                     elif log.param.aug_type =="Dropout": 
-                        print("-------use Dropout------")
+                        # print("-------use Dropout------")
                         _, augmented_supcon_feature_1 = model_momentum.get_cls_features_ptrnsp(original_text, original_attn)
 
                     elif log.param.aug_type =="Augmentation": 
@@ -144,19 +144,24 @@ def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log
                             _, augmented_supcon_feature_momentum = model_momentum.get_cls_features_ptrnsp(augmented_text,augmented_attn) # #v2
                             # momentum_feature = torch.cat([original_supcon_feature_momentum, augmented_supcon_feature_momentum], dim=0)
 
-                            queue_features = torch.cat((queue_features, original_supcon_feature_momentum.cpu()), 0)
-                            queue_labels = torch.cat((queue_labels, original_label.view([-1, 1]).cpu()), 0)
+                            queue_features = torch.cat((queue_features, original_supcon_feature_momentum), 0)
+                            queue_labels = torch.cat((queue_labels, original_label.view([-1, 1])), 0)
                             if queue_features.shape[0] > log.param.queue_size:
                                 queue_features = queue_features[log.param.train_batch_size: , :]
                                 queue_labels = queue_labels[log.param.train_batch_size: , :]
 
                             moco_features, moco_labels = queue_features, queue_labels
 
+                            if not moco_features.is_cuda:
+                                moco_features = moco_features.cuda(1)
+                                moco_labels = moco_labels.squeeze().cuda(1)
+                            else:
+                                moco_labels = moco_labels.squeeze()
 
                                 
                     k = log.param.hard_neg_k  
 
-                    anchor_labels = torch.zeros((log.param.train_batch_size, log.param.train_batch_size), device='cuda:0')
+                    anchor_labels = torch.zeros((log.param.train_batch_size, log.param.train_batch_size), device='cuda:1')
                     for anchor_idx, i in enumerate(only_original_labels):
                         if i==1:
                             anchor_labels[anchor_idx] = only_original_labels
@@ -168,14 +173,14 @@ def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log
                         with torch.no_grad():
                             if moco_features.shape[0] > int(log.param.queue_size) * 1/4: 
 
-                                moco_features = moco_features.cuda()
-                                moco_labels = moco_labels.squeeze().cuda()
-                                moco_original_labels = moco_labels.squeeze().cuda()
+                                moco_features = moco_features.cuda(1)
+                                moco_labels = moco_labels.squeeze().cuda(1)
+                                moco_original_labels = moco_labels.squeeze().cuda(1)
                                 # Anchors * MoCo features Cos_Sim Matrix
                                 moco_sim = sim(original_supcon_feature_1.unsqueeze(1), moco_features.unsqueeze(0))
                                 labels_concat_moco = torch.cat((only_original_labels, moco_labels), dim=0) # batch label + moco label 
 
-                                target = torch.zeros((only_original_labels.size(0), labels_concat_moco.size(0)), device='cuda:0')
+                                target = torch.zeros((only_original_labels.size(0), labels_concat_moco.size(0)), device='cuda:1')
 
                                 for m_idx, i in enumerate(only_original_labels):
                                     if i==1:
@@ -205,7 +210,7 @@ def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log
                                 cos_sim_moco_topk_hard_neg = torch.topk(cos_sim_moco_hard_neg, k, dim=1) #indices, values
                                 hard_neg_idx = cos_sim_moco_topk_hard_neg.indices
                                 
-                                hard_neg_features = torch.zeros((hard_neg_idx.size(0), hard_neg_idx.size(1), moco_features.size(1)))
+                                hard_neg_features = torch.zeros((hard_neg_idx.size(0), hard_neg_idx.size(1), moco_features.size(1)), device='cuda:1')
                                 for batch_idx in range(hard_neg_idx.size(0)):
                                         for k_idx in range(hard_neg_idx.size(1)):
                                             hard_neg_features[batch_idx, k_idx] = moco_features[hard_neg_idx[batch_idx][k_idx]]
@@ -252,7 +257,7 @@ def train(epoch,train_loader,model_main,loss_function,optimizer,lr_scheduler,log
                     loss_1 = (loss_function["lambda_loss"]*loss_function["ce_loss"](pred_1,only_original_labels)) + ((1-loss_function["lambda_loss"])*loss_function["SupConLoss_Original"](supcon_feature_1, label))
 
                 elif log.param.loss_type == "Ours": 
-                    print("======start LAHN======")
+                    # print("======start LAHN======")
                     if moco_features.shape[0] > int(log.param.queue_size) * 1/4:
                         loss_1 = (loss_function["lambda_loss"]*loss_function["ce_loss"](pred_1,only_original_labels)) + ((1-loss_function["lambda_loss"])*loss_function["Ours"](supcon_feature_1, label, None, hard_neg_features, None, moco_labels, anchor_labels, moco_features, moco_original_labels))
                     else:
@@ -355,9 +360,9 @@ def test(test_loader, model_main, log):
             label = torch.autograd.Variable(label).long()
 
             if torch.cuda.is_available():
-                text = text.cuda()
-                attn = attn.cuda()
-                label = label.cuda()
+                text = text.cuda(1)
+                attn = attn.cuda(1)
+                label = label.cuda(1)
 
             last_layer_hidden_states, supcon_feature_1 = model_main.get_cls_features_ptrnsp(text,attn) # #v2
             pred_1 = model_main(last_layer_hidden_states)
@@ -415,14 +420,14 @@ def cl_train(log):
 
     print("#######################start run#######################")
     print("log:", log)
-    train_data,valid_data,test_data = get_dataloader(log.param.train_batch_size,log.param.eval_batch_size,log.param.dataset,w_aug=log.param.w_aug,w_double=log.param.w_double,label_list=None)
+    train_data,valid_data,test_data = get_dataloader(log.param.train_batch_size,log.param.eval_batch_size,log.param.dataset,w_aug=log.param.w_aug,w_double=log.param.w_double,label_list=None, type=log.param.type)
     print("len(train_data):", len(train_data)) 
 
     losses = {
             # "ucl":loss.UnSupConLoss(temperature=log.param.temperature),
             "Ours":LAHN(temperature=log.param.temperature),
             # "ImpCon":loss.ImpCon(temperature=log.param.temperature),
-            "SupConLoss":SupConLoss(temperature=log.param.temperature),
+            "SupConLoss":SupConLoss(temperature=log.param.temperature, device=torch.device('cuda:1')),
             # "SupConLoss_Original":loss.SupConLoss_Original(temperature=log.param.temperature),
             "ce_loss":nn.CrossEntropyLoss(),
             "bce_loss":nn.BCEWithLogitsLoss(),
@@ -430,7 +435,7 @@ def cl_train(log):
             }
 
     model_run_time = time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime())
-    model_main = primary_encoder_v2_no_pooler_for_con(log.param.hidden_size,log.param.label_size,log.param.model_type)
+    model_main = primary_encoder_v2_no_pooler_for_con(log.param.hidden_size,log.param.label_size,log.param.model_type, )
 
 
     if log.param.momentum > 0.:
@@ -439,8 +444,8 @@ def cl_train(log):
                 param_m.data.copy_(param.data)  # initialize
                 param_m.requires_grad = False  # not update by gradient 
    
-    queue_features = torch.zeros((0, 768))
-    queue_labels = torch.zeros((0, 1))
+    queue_features = torch.zeros((0, 768), device='cuda:1')
+    queue_labels = torch.zeros((0, 1), device='cuda:1')
 
     total_params = list(model_main.named_parameters())
     num_training_steps = int(len(train_data)*log.param.nepoch)
