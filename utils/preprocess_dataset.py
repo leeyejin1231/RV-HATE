@@ -78,7 +78,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 			else:
 				print("Tokenizing data")
 				tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
-				if use_ne:
+				if use_ner:
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 				tokenized_post = tokenizer.batch_encode_plus(post).input_ids
@@ -138,8 +138,8 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 
-				tokenized_post =tokenizer.batch_encode_plus(post).input_ids
-				tokenized_post_augmented =tokenizer.batch_encode_plus(augmented_post).input_ids
+				tokenized_post =tokenizer.batch_encode_plus(post, max_length=512, padding=True, truncation=True).input_ids
+				tokenized_post_augmented =tokenizer.batch_encode_plus(augmented_post, max_length=512, padding=True, truncation=True).input_ids
 
 				tokenized_combined_prompt = [list(i) for i in zip(tokenized_post,tokenized_post_augmented)]
 				combined_prompt = [list(i) for i in zip(post,augmented_post)]
@@ -159,7 +159,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 
 				print("Tokenizing data")
 				tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
-				if use_ne:
+				if use_ner:
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 
@@ -352,10 +352,10 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(description='Enter tokenizer type')
 
-	parser.add_argument('-m', default="simcse", type=str, help='Enter sentence embedding model')
-	parser.add_argument('-d', default="ihc_pure_c10",type=str, help='Enter dataset')
+	parser.add_argument('-m', default="princeton-nlp", type=str, help='Enter sentence embedding model')
+	parser.add_argument('-d', default="dynahate_c125",type=str, help='Enter dataset')
 	parser.add_argument('-t', default="bert-base-uncased",type=str, help='Enter tokenizer type')
-	parser.add_argument('-n', default=False, type=bool, help='Add Special Token')
+	parser.add_argument('-n', default=True, type=bool, help='Add Special Token(use_ner)')
 	args = parser.parse_args()
 
 	preprocess_data(args.m, args.d, args.t, args.n)

@@ -8,7 +8,6 @@ python utils/shared_semantics.py \
  	--cluster_num 20 \
  	--load_dataset toxigen \
  	--load_sent_emb_model ssgyejin/ihc-sim2 \
-   --center_type euclidean \
    --threshold False \
    --use_ner False
 

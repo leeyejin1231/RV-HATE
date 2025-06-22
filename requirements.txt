@@ -10,3 +10,7 @@ transformers==4.2.1
 torch
 simcse
 easydict
+gym==0.26.2
+stable_baselines3==2.4.1
+shimmy
+tensorboard

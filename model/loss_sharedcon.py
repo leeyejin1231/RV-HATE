@@ -5,17 +5,12 @@ import pickle
 ### Credits https://github.com/HobbitLong/SupContrast
 class SupConLoss(nn.Module):
 
-    def __init__(self, temperature=0.07):
+    def __init__(self, temperature=0.07, device=torch.device('cuda:0')):
         super(SupConLoss, self).__init__()
         self.temperature = temperature
-
+        self.device = device
 
     def forward(self, features, labels, mask=None):
-
-
-        device = (torch.device('cuda')
-                  if features.is_cuda
-                  else torch.device('cpu'))
         
         batch_size = features.shape[0] ## 2*N
         if labels is not None and mask is not None:
@@ -24,7 +19,7 @@ class SupConLoss(nn.Module):
             contrast_count = 2
             anchor_count = contrast_count
             assert batch_size % 2 == 0
-            mask = torch.eye(batch_size//2, dtype=torch.float32).to(device)
+            mask = torch.eye(batch_size//2, dtype=torch.float32).to(self.device)
             mask = mask.repeat(anchor_count, contrast_count)
         elif labels is not None:    # hsan: 우리가 쓰는거
             labels = labels.contiguous().view(-1, 1)
@@ -33,7 +28,7 @@ class SupConLoss(nn.Module):
                 print(batch_size, "batch_siae in loss file")
                 raise ValueError('Num of labels does not match num of features')
             
-            mask = torch.eq(labels, labels.T).float().to(device)
+            mask = torch.eq(labels, labels.T).float().to(self.device)
 
         else:
             raise NotImplementedError
@@ -55,7 +50,7 @@ class SupConLoss(nn.Module):
         logits_mask = torch.scatter(
             torch.ones_like(mask),
             1,
-            torch.arange(batch_size).view(-1, 1).to(device),
+            torch.arange(batch_size).view(-1, 1).to(self.device),
             0
         )
         
@@ -135,7 +130,7 @@ class LAHN(nn.Module):
 
     def forward(self, features, labels=None, mask=None, momentum_features=None, momentum_features_pos=None, momentum_labels=None, anchor_labels=None, all_features_m=None, all_labels_m=None):
 
-        device = (torch.device('cuda')
+        device = (torch.device('cuda:1')
                   if features.is_cuda
                   else torch.device('cpu'))
 
@@ -159,7 +154,7 @@ class LAHN(nn.Module):
             cos_sim_moco = self.sim(z1.unsqueeze(1), momentum_features.unsqueeze(0).to(device))
             cos_sim_moco = cos_sim_moco.squeeze()
             concat_all_sim = torch.cat((cos_sim_diag, cos_sim_moco),1).to(device)
-            target = torch.zeros_like(concat_all_sim, device='cuda:0')
+            target = torch.zeros_like(concat_all_sim, device='cuda:1')
             target[:, 0] = 1
             loss = self.bce(concat_all_sim, target)
 
@@ -170,16 +165,13 @@ class LAHN(nn.Module):
 ### Credits https://github.com/HobbitLong/SupContrast
 class SupConLoss_for_double(nn.Module):
 
-    def __init__(self, temperature=0.07):
+    def __init__(self, temperature=0.07, device=torch.device('cuda:0')):
         super(SupConLoss_for_double, self).__init__()
         self.temperature = temperature
+        self.device = device
 
 
     def forward(self, features, labels=None, mask=None):
-
-        device = (torch.device('cuda')
-                  if features.is_cuda
-                  else torch.device('cpu'))
 
         batch_size = features.shape[0] ## 3*N
 
@@ -189,13 +181,13 @@ class SupConLoss_for_double(nn.Module):
             contrast_count = 3
             anchor_count = contrast_count
             assert batch_size % 3 == 0
-            mask = torch.eye(batch_size//3, dtype=torch.float32).to(device)
+            mask = torch.eye(batch_size//3, dtype=torch.float32).to(self.device)
             mask = mask.repeat(anchor_count, contrast_count)
         elif labels is not None:
             labels = labels.contiguous().view(-1, 1)
             if labels.shape[0] != batch_size:
                 raise ValueError('Num of labels does not match num of features')
-            mask = torch.eq(labels, labels.T).float().to(device) 
+            mask = torch.eq(labels, labels.T).float().to(self.device) 
         else:
             raise NotImplementedError
 
@@ -210,7 +202,7 @@ class SupConLoss_for_double(nn.Module):
         logits_mask = torch.scatter(
             torch.ones_like(mask),
             1,
-            torch.arange(batch_size).view(-1, 1).to(device),
+            torch.arange(batch_size).view(-1, 1).to(self.device),
             0
         )
 
