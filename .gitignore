@@ -11,6 +11,7 @@ raw_dataset/
 preprocessed_data/
 clustered_dataset/
 save/
+ppo_ensemble_logs/
 *.out
 __pycache__
 .coverage
