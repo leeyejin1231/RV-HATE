@@ -30,6 +30,7 @@ class Clustering():
         return self.labels
     
     def get_center_post_idx_with_cosine(self, k):
+        # calculate cosine similarity between center and each post
         if k > 1:
             print(f"==> top_k is {k}")
         closest_sentences = []
@@ -46,6 +47,7 @@ class Clustering():
         return closest_sentences
     
     def get_center_post_idx_with_uclidean(self):
+        # calculate euclidean distance between center and each post
         closest_data = []
         all_data = [i for i in range(len(self.tokenized_post))]
         
@@ -83,19 +85,15 @@ class Clustering():
         dataset_1 = self.dataset[self.dataset['cluster_label']==cluster_num].copy()
 
         distances = np.linalg.norm(embeddings_1 - self.centers[cluster_num], axis=1)
-        # distances2 = cosine_similarity(self.centers[cluster_num].reshape(1, -1), embeddings_1).flatten()
         
         ## IQR
-        print("====== IQR =======")
+        ## calculate the interquartile range (IQR) of the distances
         quartiles = np.percentile(distances, [25, 75])
-        # quartiles2 = np.percentile(distances2, [25])
         iqr = quartiles[1] - quartiles[0]
         dataset_1['outlier'] = [True if distances[i] < (quartiles[1] + 1.5 * iqr) else False for i in range(len(dataset_1))]
-        # dataset_1['outlier'] = [True if distances[i] < (quartiles[1] + 1.5 * iqr) and (quartiles2[0] - 1.5 * iqr) < distances2[i] else False for i in range(len(dataset_1))]
-        # dataset_1['outlier'] = [True if (quartiles[0] - 1.5 * iqr) < distances2[i] else False for i in range(len(dataset_1))]
 
-        # ## z-score
-        # print("====== z-score =======")
+        ## z-score
+        # calculate the z-score of the distances
         # distance_mean = np.mean(distances)
         # distances_std = np.std(distances)
         # dataset_1['outlier'] = [False if (distance-distance_mean)/distances_std > 1.96 else True for distance in distances]

@@ -79,27 +79,27 @@ def test(test_loader, model_base, model_ner, model_cosine, model_outlier, model_
             final_preds = []
             for i in range(pred_list.size(1)):
                 votes = pred_list[:, i]
-                 # 각 클래스별 가중합 계산
+                 # Calculate weighted sum for each class
                 unique_classes, counts = votes.unique(return_counts=True)
                 weighted_counts = torch.zeros_like(unique_classes, dtype=torch.float)
 
                 for j, cls in enumerate(unique_classes):
                     mask = (votes == cls).float()
-                    weighted_counts[j] = torch.sum(mask * weights)  # 해당 클래스의 가중치 합
+                    weighted_counts[j] = torch.sum(mask * weights)  # Sum of weights for the class
 
-                # 동점 여부 확인
+                # Check for ties
                 max_weight = torch.max(weighted_counts)
-                tied_classes = unique_classes[weighted_counts == max_weight]  # 동점인 클래스
+                tied_classes = unique_classes[weighted_counts == max_weight]  # Classes with ties
 
                 if len(tied_classes) > 1:
-                    # 동점 발생 시: 가중치 없는 다수결 적용
+                    # When there is a tie, apply unweighted majority voting
                     majority_vote = unique_classes[torch.argmax(counts)].item()
                 else:
                     majority_vote = tied_classes[0].item()
 
                 final_preds.append(majority_vote)
 
-            # 최종 예측 결과
+            # Final prediction result
             pred_list_1 = final_preds
 
             device_label = label.device  # Assume `label` is on the target device

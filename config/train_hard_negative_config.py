@@ -1,4 +1,4 @@
-dataset = ["dynahate_c125"]
+dataset = ["ihc_pure_c20"]
 
 tuning_param  = ["lambda_loss", "main_learning_rate","train_batch_size","eval_batch_size","nepoch","temperature","SEED","dataset", "decay",
                  "loss_type", "model_type", "momentum", "queue_size", "hard_neg_k" , "aug_type", "aug_enque", "moco_weight"] ## list of possible paramters to be tuned
@@ -7,44 +7,35 @@ tuning_param  = ["lambda_loss", "main_learning_rate","train_batch_size","eval_ba
 temperature = [0.3]
 lambda_loss = [0.5]
 momentum = [0.999]
-
-# aug_type = ["Augmentation"]
-aug_type = ["Dropout"]
-
-
 queue_size = [1024]
 hard_neg_k = [16]
 
+aug_type = ["Augmentation"]              # default value (Augmentation) DO NOT CHANGE THIS VALUE
+aug_enque = ["False"]                    # default value (False) DO NOT CHANGE THIS VALUE
+moco_weight = ["True"]                   # default value (True) DO NOT CHANGE THIS VALUE
 
-aug_enque = ["False"]
-moco_weight = ["True"]
+train_batch_size = [8]                    # batch size for training
+eval_batch_size = [8]                     # batch size for evaluation
+decay = [0.0]                             # default value of AdamW
+main_learning_rate = [3e-05]              # learning rate
 
-train_batch_size = [8]
-eval_batch_size = [8]
+hidden_size = 768                         # hidden size
+nepoch = [6]                              # number of epochs
+run_name = "ihc_pure/m3"                  # save path
+type = "m0"                               # the type of module (default: m0) DO NOT CHANGE THIS VALUE
+model_type = ["bert-base-uncased"]        # model type
+gpu_num = 0                               # GPU id
+SEED = [42]                               # random seed
+loss_type = ["Ours"]                      # loss type (default: Ours) DO NOT CHANGE THIS VALUE
+dir_name = "ihc_pure"                      # dataset name
 
-decay = [0.0] # default value of AdamW
-main_learning_rate = [3e-05]
+w_aug = True                               # default value (True) DO NOT CHANGE THIS VALUE
+w_double = False                           # default value (False) DO NOT CHANGE THIS VALUE
+w_separate = False                         # default value (False) DO NOT CHANGE THIS VALUE
+w_sup = True                               # default value (True) DO NOT CHANGE THIS VALUE
 
-hidden_size = 768
-nepoch = [6]
-run_name = "dynahate/hard_negative"
-type = "base"
-model_type = ["bert-base-uncased"]
+save = True                                # saving model parameters
 
-
-SEED = [60]
-
-# loss_type = ["CE"]
-loss_type = ["Ours"]
-
-dir_name = "dynahate"
-
-w_aug = True
-w_double = False
-w_separate = False
-w_sup = True
-
-save = True
 param = {"temperature":temperature,"run_name":run_name,"dataset":dataset,"main_learning_rate":main_learning_rate,"train_batch_size":train_batch_size,"eval_batch_size":eval_batch_size,"hidden_size":hidden_size,"nepoch":nepoch,"dataset":dataset,"lambda_loss":lambda_loss,"loss_type":loss_type,"decay":decay,"SEED":SEED,"model_type":model_type,"w_aug":w_aug, "w_sup":w_sup, "save":save,"w_double":w_double, "w_separate":w_separate,
          "loss_type":loss_type, "dir_name":dir_name, "momentum":momentum, "queue_size":queue_size, "hard_neg_k":hard_neg_k,
          "aug_type":aug_type, "aug_enque":aug_enque, "moco_weight":moco_weight,"type":type}

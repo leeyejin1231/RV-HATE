@@ -60,9 +60,7 @@ def test(test_loader, model_base, model_ner, model_outlier, model_hard_negative,
 
             pred_list = [pred_base, pred_ner, pred_outlier, pred_hard_negative]
 
-            # 로짓 가중 평균 계산
             with torch.no_grad():
-                # 로짓 값 가중 합산
                 logits_weighted_sum = torch.zeros_like(pred_list[0])
                 for pred, weight in zip(pred_list, weights):
                     logits_weighted_sum += pred * weight

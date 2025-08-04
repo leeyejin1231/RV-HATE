@@ -120,17 +120,18 @@ class Similarity_diag(nn.Module):
     
 
 class LAHN(nn.Module):
-    def __init__(self, temperature=0.07):
+    def __init__(self, temperature=0.07, gpu_num=0):
         super(LAHN, self).__init__()
         self.temperature = temperature
         self.sim = Similarity(temperature)
         self.sim_diag = Similarity_diag(temperature)
         self.cross_entropy = nn.CrossEntropyLoss()
         self.bce = nn.BCEWithLogitsLoss()
-
+        self.gpu_num = gpu_num
+    
     def forward(self, features, labels=None, mask=None, momentum_features=None, momentum_features_pos=None, momentum_labels=None, anchor_labels=None, all_features_m=None, all_labels_m=None):
 
-        device = (torch.device('cuda:1')
+        device = (torch.device(f'cuda:{self.gpu_num}')
                   if features.is_cuda
                   else torch.device('cpu'))
 
@@ -154,7 +155,7 @@ class LAHN(nn.Module):
             cos_sim_moco = self.sim(z1.unsqueeze(1), momentum_features.unsqueeze(0).to(device))
             cos_sim_moco = cos_sim_moco.squeeze()
             concat_all_sim = torch.cat((cos_sim_diag, cos_sim_moco),1).to(device)
-            target = torch.zeros_like(concat_all_sim, device='cuda:1')
+            target = torch.zeros_like(concat_all_sim, device=f'cuda:{self.gpu_num}')
             target[:, 0] = 1
             loss = self.bce(concat_all_sim, target)
 
