@@ -154,7 +154,8 @@ def start_ppo(log):
 
     models = [model_base, model_ner, model_outlier, model_hard_negative]
     init_weights = np.array([0.25]*4, dtype=np.float32)
-    f1_baseline = test(test_data, models, init_weights, log.param.gpu_id)
+    f1_baseline_test = test(test_data, models, init_weights, log.param.gpu_id)
+    f1_baseline = test(valid_data, models, init_weights, log.param.gpu_id)
     env = DummyVecEnv([lambda: EnsembleEnv(test_data, tuple(models), f1_baseline=f1_baseline, gpu_id=log.param.gpu_id)])
 
     # Instantiate PPO agent
@@ -178,7 +179,7 @@ def start_ppo(log):
     # Evaluate final performance
     f1_new = test(test_data, models, optimal_weights, log.param.gpu_id)
     # f1_new_valid = test(valid_data, models, optimal_weights, log.param.gpu_id)
-    print(f"Valid Macro F1: {f1_baseline:.4f}")
+    print(f"Test Macro F1: {f1_baseline_test:.4f}")
     # print(f"New Valid Macro F1: {f1_new_valid:.4f}")
     print(f"New Macro F1: {f1_new:.4f}")
 
