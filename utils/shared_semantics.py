@@ -20,9 +20,9 @@ random.seed(0)
 
 
 # given a dataset, compute clustering and select the closest data from each cluster
-def cluster_n_select(dataset, sent_emb_model, input_col, center_type, args, is_train="False", is_not_hate=None, use_ner="False"):
+def cluster_n_select(dataset, sent_emb_model, input_col, args, remove_outlier=False, is_not_hate=None, use_ner=False):
     
-    if use_ner == "True":
+    if use_ner:
         simcse = AutoTokenizer.from_pretrained(f"{sent_emb_model}", device=device)
         new_tokens = ["[TARGET]"]
         simcse.add_tokens(new_tokens)
@@ -31,37 +31,26 @@ def cluster_n_select(dataset, sent_emb_model, input_col, center_type, args, is_t
     
     clustering = Clustering(int(args.cluster_num), dataset, input_col, simcse, use_ner)
 
-    if center_type == "cosine":
-        print("======cosine=======")
-        cluster_center_post = clustering.get_center_post_idx_with_cosine(k=1)
-        m_clusters = clustering.get_cluster_number()
+    print("======cosine=======")
+    cluster_center_post = clustering.get_center_post_idx_with_cosine(k=1)
+    ## use euclidean distance
+    # closest_data = clustering.get_center_post_idx_with_uclidean()
 
-        ### remove outlier
-        if is_train=="True":
-            before_dataset = len(dataset)
-            dataset = clustering.remove_outlier_data()
-            m_clusters = dataset['cluster_label'].tolist()
-            dataset = dataset.drop(columns=['cluster_label'])
-            print(f"=== before_data: {before_dataset}, after_data: {len(dataset)}, ({((before_dataset-(len(dataset)))/before_dataset)*100:.2f}% removed)")
+    m_clusters = clustering.get_cluster_number()
 
-        centroid_sample = [dataset[input_col][cluster_center_post[i]:cluster_center_post[i]+1].values[0] for i in m_clusters]
+    ### remove outlier
+    if remove_outlier:
+        before_dataset = len(dataset)
+        dataset = clustering.remove_outlier_data()
+        m_clusters = dataset['cluster_label'].tolist()
+        dataset = dataset.drop(columns=['cluster_label'])
+        print("=============================================================")
+        print(f"=== before_data: {before_dataset}, after_data: {len(dataset)}, ({((before_dataset-(len(dataset)))/before_dataset)*100:.2f}% removed)")
 
-
-    else:
-        ## select the closest data from the cluster
-        print("======euclidean=======")
-        closest_data = clustering.get_center_post_idx_with_uclidean()
-        m_clusters = clustering.get_cluster_number()
-
-        ### remove outlier
-        if is_train=="True":
-            before_dataset = len(dataset)
-            dataset = clustering.remove_outlier_data()
-            m_clusters = dataset['cluster_label'].tolist()
-            dataset = dataset.drop(columns=['cluster_label'])
-            print(f"=== before_data: {before_dataset}, after_data: {len(dataset)}, ({((before_dataset-(len(dataset)))/before_dataset)*100:.2f}% removed)")
-
-        centroid_sample = [dataset[input_col][closest_data[i]] for i in m_clusters]
+    centroid_sample = [dataset[input_col][cluster_center_post[i]:cluster_center_post[i]+1].values[0] for i in m_clusters]
+    
+    ## use euclidean distance
+    # centroid_sample = [dataset[input_col][closest_data[i]] for i in m_clusters]
 
     # ## distinguish the non-hate label
     if is_not_hate:
@@ -76,12 +65,23 @@ def cluster_n_select(dataset, sent_emb_model, input_col, center_type, args, is_t
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--cluster_num', default=20,type=int, help='Enter the number of cluster')
-    parser.add_argument('--load_dataset', default="dynahate",type=str, help='Enter the path of the dataset')
-    parser.add_argument('--load_sent_emb_model', default="dyna-sim",type=str, help='Enter the path/type of the sentence embedding model')
-    parser.add_argument('--center_type', default="cosine",type=str, help='Enter the type of the center')
-    parser.add_argument('--threshold', default="False",type=str, help='Enter the type of the center')
-    parser.add_argument('--use_ner', default="False",type=str, help='Enter the type of the center')
+    parser.add_argument('--load_dataset', default="ihc_pure",type=str, help='Enter the path of the dataset')
+    parser.add_argument('--load_sent_emb_model', default="princeton-nlp/unsup-simcse-bert-base-uncased",type=str, help='Enter the path/type of the sentence embedding model')
+    parser.add_argument('--module_type', default="m2",type=str, help='Enter the type of module')
     args = parser.parse_args() 
+
+    if args.module_type == "m0":
+        remove_outlier = False
+        use_ner = False
+    elif args.module_type == "m1":
+        remove_outlier = False
+        use_ner = True
+    elif args.module_type == "m2":
+        remove_outlier = True
+        use_ner = False
+    else:
+        raise NotImplementedError
+
 
     # load raw dataset
     if args.load_dataset == "ihc_pure":
@@ -136,9 +136,9 @@ if __name__ == '__main__':
     implicit_hate3 = implicit_hate3.reset_index(drop=True)
 
     ### cluster samples and and select the closest sample to the centroid per cluster
-    implicit_hate1 = cluster_n_select(implicit_hate1, args.load_sent_emb_model, input_col, center_type=args.center_type, args=args, is_train=args.threshold, use_ner=args.use_ner)
-    implicit_hate2 = cluster_n_select(implicit_hate2, args.load_sent_emb_model, input_col, center_type=args.center_type, args=args, use_ner=args.use_ner)
-    implicit_hate3 = cluster_n_select(implicit_hate3, args.load_sent_emb_model, input_col, center_type=args.center_type, args=args, use_ner=args.use_ner)
+    implicit_hate1 = cluster_n_select(implicit_hate1, args.load_sent_emb_model, input_col, args=args, remove_outlier=remove_outlier, use_ner=use_ner)
+    implicit_hate2 = cluster_n_select(implicit_hate2, args.load_sent_emb_model, input_col, args=args, use_ner=use_ner)
+    implicit_hate3 = cluster_n_select(implicit_hate3, args.load_sent_emb_model, input_col, args=args, use_ner=use_ner)
     print(f"class: implicit_hate DONE")
     
     ## 2) not_hate
@@ -155,9 +155,9 @@ if __name__ == '__main__':
     not_hate3 = not_hate3.reset_index(drop=True)
 
     ### cluster samples and and select the closest sample to the centroid per cluster
-    not_hate1 = cluster_n_select(not_hate1, args.load_sent_emb_model, input_col, center_type=args.center_type, args=args, is_train=args.threshold, is_not_hate=True, use_ner=args.use_ner)
-    not_hate2 = cluster_n_select(not_hate2, args.load_sent_emb_model, input_col, center_type=args.center_type, args=args, is_not_hate=True, use_ner=args.use_ner)
-    not_hate3 = cluster_n_select(not_hate3, args.load_sent_emb_model, input_col, center_type=args.center_type, args=args, is_not_hate=True, use_ner=args.use_ner)
+    not_hate1 = cluster_n_select(not_hate1, args.load_sent_emb_model, input_col, args=args, remove_outlier=remove_outlier, is_not_hate=True, use_ner=use_ner)
+    not_hate2 = cluster_n_select(not_hate2, args.load_sent_emb_model, input_col, args=args, is_not_hate=True, use_ner=use_ner)
+    not_hate3 = cluster_n_select(not_hate3, args.load_sent_emb_model, input_col, args=args, is_not_hate=True, use_ner=use_ner)
     print(f"class: not_hate DONE")
     
     
@@ -176,16 +176,14 @@ if __name__ == '__main__':
     # save the dataset
     if "princeton" in args.load_sent_emb_model:
         model_name = "princeton-nlp"
-    if "unsup" in args.load_sent_emb_model:
-        model_name = "simcse"
     else:
         model_name = args.load_sent_emb_model
-    os.makedirs(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", exist_ok=True)
+    os.makedirs(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}_{args.module_type}", exist_ok=True)
     if args.load_dataset == "ihc_pure":
-        total_train_dataset.to_csv(os.path.join(f"./clustered_dataset/{args.load_sent_emb_model}/{args.load_dataset}_c{args.cluster_num}", "train.tsv"), sep="\t", index=False)
-        total_valid_dataset.to_csv(os.path.join(f"./clustered_dataset/{args.load_sent_emb_model}/{args.load_dataset}_c{args.cluster_num}", "valid.tsv"), sep="\t", index=False)
-        total_test_dataset.to_csv(os.path.join(f"./clustered_dataset/{args.load_sent_emb_model}/{args.load_dataset}_c{args.cluster_num}", "test.tsv"), sep="\t", index=False)
+        total_train_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}_{args.module_type}", "train.tsv"), sep="\t", index=False)
+        total_valid_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}_{args.module_type}", "valid.tsv"), sep="\t", index=False)
+        total_test_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}_{args.module_type}", "test.tsv"), sep="\t", index=False)
     else:
-        total_train_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", "train.csv"), sep=",", index=False)
-        total_valid_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", "valid.csv"), sep=",", index=False)
-        total_test_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}", "test.csv"), sep=",", index=False)
+        total_train_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}_{args.module_type}", "train.csv"), sep=",", index=False)
+        total_valid_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}_{args.module_type}", "valid.csv"), sep=",", index=False)
+        total_test_dataset.to_csv(os.path.join(f"./clustered_dataset/{model_name}/{args.load_dataset}_c{args.cluster_num}_{args.module_type}", "test.csv"), sep=",", index=False)

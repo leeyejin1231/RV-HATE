@@ -9,9 +9,15 @@
 ## PyTorch
 raw_dataset/
 preprocessed_data/
+preprocessed_data_cosine/
+preprocessed_data_euclidean/
 clustered_dataset/
 save/
+save_euclidean/
+ppo_ensemble_logs/
 *.out
+*.ipynb
+*.csv
 __pycache__
 .coverage
 coverage.xml

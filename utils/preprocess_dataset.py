@@ -15,12 +15,12 @@ random.seed(0)
 
 
 
-def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
+def preprocess_data(sent_emb_model, dataset, tokenizer_type, module_type):
 	os.makedirs("./preprocessed_data", exist_ok=True)
 
 	if "ihc" in dataset:
 		class2int = {'not_hate':0 ,'implicit_hate': 1}
-		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}/"
+		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}_{module_type}/"
 		data_dict = {}
 
 		for datatype in ["train","valid","test"]:
@@ -53,7 +53,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 
 				print("Tokenizing data")
 				tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
-				if use_ner:
+				if module_type == "m1":
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 
@@ -78,7 +78,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 			else:
 				print("Tokenizing data")
 				tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
-				if use_ne:
+				if module_type == "m1":
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 				tokenized_post = tokenizer.batch_encode_plus(post).input_ids
@@ -92,10 +92,10 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 				processed_data = pd.DataFrame.from_dict(processed_data)
 				data_dict[datatype] = processed_data
 
-		
-		with open(f"./preprocessed_data/preprocessed_{dataset}.pkl", 'wb') as f:
-			pickle.dump(data_dict, f)
-		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}.pkl')
+		else:
+			with open(f"./preprocessed_data/preprocessed_{dataset}_{module_type}.pkl", 'wb') as f:
+				pickle.dump(data_dict, f)
+			print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}_{module_type}.pkl')
 
 
 
@@ -103,7 +103,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 	elif "sbic" in dataset:
 		class2int = {'not_offensive':0 ,'offensive': 1}
 		data_dict = {}
-		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}/"
+		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}_{module_type}/"
 
 		for datatype in ["train","valid","test"]:
 			datafile = data_home + datatype + ".csv"
@@ -134,12 +134,12 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 
 				print("Tokenizing data")
 				tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
-				if use_ner:
+				if module_type == "m1":
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 
-				tokenized_post =tokenizer.batch_encode_plus(post).input_ids
-				tokenized_post_augmented =tokenizer.batch_encode_plus(augmented_post).input_ids
+				tokenized_post =tokenizer.batch_encode_plus(post, max_length=512, padding=True, truncation=True).input_ids
+				tokenized_post_augmented =tokenizer.batch_encode_plus(augmented_post, max_length=512, padding=True, truncation=True).input_ids
 
 				tokenized_combined_prompt = [list(i) for i in zip(tokenized_post,tokenized_post_augmented)]
 				combined_prompt = [list(i) for i in zip(post,augmented_post)]
@@ -159,7 +159,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 
 				print("Tokenizing data")
 				tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
-				if use_ne:
+				if module_type == "m1":
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 
@@ -174,9 +174,9 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 				processed_data = pd.DataFrame.from_dict(processed_data)
 				data_dict[datatype] = processed_data
 
-		with open(f"./preprocessed_data/preprocessed_{dataset}.pkl", 'wb') as f:
+		with open(f"./preprocessed_data/preprocessed_{dataset}_{module_type}.pkl", 'wb') as f:
 			pickle.dump(data_dict, f)
-		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}.pkl')
+		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}_{module_type}.pkl')
 
 
 
@@ -184,7 +184,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 	elif "dynahate" in dataset:
 		class2int = {'nothate':0 ,'hate': 1}
 		data_dict = {}
-		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}/"
+		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}_{module_type}/"
 
 		for datatype in ["train","valid","test"]:
 			datafile = data_home + datatype + ".csv"
@@ -220,7 +220,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 
 				print("Tokenizing data")
 				tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
-				if use_ner:
+				if module_type == "m1":
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 
@@ -244,7 +244,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 			else:
 				print("Tokenizing data")
 				tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
-				if use_ner:
+				if module_type == "m1":
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 
@@ -259,14 +259,14 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 				processed_data = pd.DataFrame.from_dict(processed_data)
 				data_dict[datatype] = processed_data
 
-		with open(f"./preprocessed_data/preprocessed_{dataset}.pkl", 'wb') as f:
+		with open(f"./preprocessed_data/preprocessed_{dataset}_{module_type}.pkl", 'wb') as f:
 			pickle.dump(data_dict, f)
-		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}.pkl')
+		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}_{module_type}.pkl')
 	
 	elif "hateval" in dataset or "toxigen" in dataset or "white" in dataset or "union" in dataset:
 		# class2int = {'not_offensive':0 ,'offensive': 1}
 		data_dict = {}
-		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}/"
+		data_home = f"./clustered_dataset/{sent_emb_model}/{dataset}_{module_type}/"
 
 		for datatype in ["train","valid","test"]:
 			datafile = data_home + datatype + ".csv"
@@ -301,7 +301,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 
 				print("Tokenizing data")
 				tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
-				if use_ner:
+				if module_type == "m1":
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 
@@ -326,7 +326,7 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 
 				print("Tokenizing data")
 				tokenizer = AutoTokenizer.from_pretrained(tokenizer_type)
-				if use_ner:
+				if module_type == "m1":
 					new_tokens = ["[TARGET]"]
 					tokenizer.add_tokens(new_tokens)
 
@@ -341,9 +341,9 @@ def preprocess_data(sent_emb_model, dataset, tokenizer_type, use_ner):
 				processed_data = pd.DataFrame.from_dict(processed_data)
 				data_dict[datatype] = processed_data
 
-		with open(f"./preprocessed_data/preprocessed_{dataset}.pkl", 'wb') as f:
+		with open(f"./preprocessed_data/preprocessed_{dataset}_{module_type}.pkl", 'wb') as f:
 			pickle.dump(data_dict, f)
-		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}.pkl')
+		print(f'The tokenized data is saved at ./preprocessed_data/preprocessed_{dataset}_{module_type}.pkl')
 
 	else:
 		raise NotImplementedError
@@ -352,10 +352,10 @@ if __name__ == '__main__':
 
 	parser = argparse.ArgumentParser(description='Enter tokenizer type')
 
-	parser.add_argument('-m', default="simcse", type=str, help='Enter sentence embedding model')
-	parser.add_argument('-d', default="ihc_pure_c10",type=str, help='Enter dataset')
+	parser.add_argument('-e', default="princeton-nlp", type=str, help='Enter sentence embedding model')
+	parser.add_argument('-d', default="ihc_pure_c20",type=str, help='Enter dataset')
 	parser.add_argument('-t', default="bert-base-uncased",type=str, help='Enter tokenizer type')
-	parser.add_argument('-n', default=False, type=bool, help='Add Special Token')
+	parser.add_argument('-m', default="m2", type=str, help='Enter the type of module')
 	args = parser.parse_args()
 
-	preprocess_data(args.m, args.d, args.t, args.n)
+	preprocess_data(args.e, args.d, args.t, args.m)

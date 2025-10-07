@@ -96,9 +96,9 @@ class sbic_dataset(Dataset):
         return len(self.data["label"])
 
 
-def get_dataloader(train_batch_size,eval_batch_size,dataset,seed=None,w_aug=True,w_double=False,label_list=None):
+def get_dataloader(train_batch_size,eval_batch_size,dataset,seed=None,w_aug=True,w_double=False,label_list=None, type=None):
 
-    with open('./preprocessed_data/'+'preprocessed_'+dataset+'.pkl', "rb") as f:
+    with open('./preprocessed_data/'+'preprocessed_'+dataset+'_'+type+'.pkl', "rb") as f:
 
         data = pickle.load(f)
 
