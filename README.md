@@ -1,47 +1,59 @@
-# V-HATE: Voting-based Implicit Hate Speech Detection
-## About V-HATE
-**V-HATE** is a voting-based framework that selects the optimal combination of modules for each dataset to enhance implicit hate speech detection performance.
-We develop five specialized modules designed to capture diverse dataset-specific characteristics.
-</br>
+# RV-HATE: Reinforced Multi-Module Voting for Implicit Hate Speech Detection
+
+<span style="color: red">❗️***Warning**: this document contains content that may be offensive or upsetting.*</span>
+
+> **RV-HATE**, introduces a reinforcement learning–based multi-module framework that adaptively detects implicit hate speech by modeling dataset-specific linguistic and contextual characteristics.
+
+## About RV-HATE
 <p align="center">
-    <image src='./images/overview.png' width='700px'>
+  <img src="./assets/overview.png" alt="RV-HATE overview" width="650"/>
 </p>
 
-A key strength of this method is its modular design, where each component is fine-tuned to tackle specific challenges in hate speech detection, such as subtle target mentions, noisy data, and hard-to-detect "hard negatives." It can adapt to the unique characteristics of different datasets. Moreover, by using a voting system that integrates the strengths of all modules, it ensures more reliable and flexible detection results overall.
+**RV-HATE**, a reinforced multi-module voting framework for implicit hate speech detection. Unlike prior methods that rely on fixed architectures, RV-HATE dynamically adjusts to dataset-specific linguistic and contextual properties. It integrates four specialized modules—contextual clustering (base model), target tagging, outlier removal, and hard negative sampling—and employs reinforcement learning to optimize their contributions through an adaptive voting mechanism. This design not only enhances detection accuracy across diverse datasets but also provides interpretable insights into how each dataset’s unique features influence hate speech expression, achieving state-of-the-art performance in implicit hate speech detection.
 
-### ⚙️ Modules
-#### M1. Clustering-based Contrastive Learning
-
-We used **[SharedCon](https://github.com/hsannn/sharedcon)** as base model.
-Groups similar sentences into clusters and selects the sample nearest the center as the anchor for contrastive learning. This approach helps capture shared semantic cues critical for detecting implicit hate speech.
-
-#### M2. Using Target Special Token with NER Tagger
-<image src='./images/M2.png' width='400px'>  
-
-Tags explicit mentions of specific groups (e.g., organizations) with a **[TARGET]** token.
-It helps the model distinguish hate speech from offensive but non-hateful remarks.
-
-#### M3. Remove Outliers in a Clustering
-<image src='./images/M3.png' width='400px'>  
-
-Identifies and removes outlier sentences (e.g., broken or noisy text) within each cluster.
-Reducing such noise enhances the clarity of each cluster’s representation.
-
-#### M4. Using Cosine Similarity
-<image src='./images/M4.png' width='400px'>  
-
-Uses cosine similarity, instead of Euclidean distance, when selecting the cluster center.
-Focusing on vector angles ensures more semantically coherent anchor selection.
-
-#### M5. Contrastive Learning with Hard Negative Samples
-<image src='./images/M5.png' width='400px'>  
-
-Adds “hard negatives” that have high similarity yet different labels, tightening the model’s decision boundary.
-This helps the model better differentiate subtle hate from non-hate content.
+## ⚙️ Modules
+### M0 - clustering-based Contrastive Learning
+- Serves as the base module.
+- Uses cosine similarity (instead of Euclidean distance) to better capture semantic relationships in embeddings.
+- Provides strong contextual understanding of hate speech.
+### M1 - Target Tagging
+- Identifies explicit hate targets (e.g., nationality, religion, organizations) using NER + GPT-4 tagging.
+- Helps distinguish hate speech from general offensive language.
+- Most effective on datasets rich in implicit or target-based hate, like IHC.
+### M2 - Outlier Removal
+- Detects and removes broken or noisy sentences via Interquartile Range (IQR) analysis within clusters.
+- Reduces the negative effect of noisy or incomplete data.
+- Improves data quality and model robustness, especially for IHC and Hateval.
+### M3 - Hard Negative Sampling
+- Collects difficult negative samples (near the decision boundary) using a queue across batches.
+- Sharpens class boundaries and improves discrimination of subtle or mislabeled cases.
+- Provides the largest performance boost among modules.
 
 
-## 🛠️ Getting Start
-### 📚 Datasets
+## Performance of Detecting Implicit Hate Speech
+**RV-HATE** outperforms all baselines across five datasets (macro-F1).
+|Methods|IHC|SBIC|DYNA|Hateval|Toxigen|Average|
+|-------|---|----|----|-------|-------|-------|
+| BERT  | 77.70 | 83.80 | 78.80 | 81.11 | 90.06 | 82.29 |
+|SharedCon| 78.50 | 84.30 | 79.10 | 80.24 | 91.21 |82.67 |
+|LAHN| 78.40 | 83.98 | 79.64 | 80.42 | 90.42 | 82.57 |
+|RV-HATE| **79.07** | **84.62** | **81.82** | **83.44** | **93.41** | **84.47** |
+
+**Average Macro-F1**
+- RV-HATE: 84.47%
+- Best baseline (SharedCon): 82.67% → +1.8% improvement.
+
+**Dataset-wise improvements**
+- IHC: 79.07 → highest among all models.
+- SBIC: 84.62 → consistent improvement over SharedCon (84.30).
+- DYNA: 81.82 → strongest gain (+2.7%p).
+- Hateval: 83.44 → +2.33%p over CE baseline.
+- Toxigen: 93.41 → +2.2%p over previous SOTA.  
+
+RV-HATE achieves state-of-the-art performance and demonstrates robust adaptability to diverse datasets.
+
+## 🛠️ Usage
+### Datasets
 Dataset file route: `./raw_datasets/{dataset_name}/`  
 Dataset split: Train, Vaild, Test (8:1:1)  
 
@@ -51,88 +63,35 @@ We used the `IHC`, `SBIC`, `DYNA`, `Hateval` and `Toxigen` datasets.
 ```bash
 $ pip install -r requirements.txt
 ```
-### Module Setting
-Modify the `start.sh` file.
-#### 1. SharedCon (default)
-```sh
-python shared_semantics.py \
-    --cluster_num {num_of_clusters} \
-    --load_dataset {dataset name} \
-    --load_sent_emb_model {embedding model name} \
-    --center_type euclidean \
-    --threshold False
-    --use_ner False
-    
-python preprocess_dataset.py \
-    -m {embedding model name} \
-    -d {data_name} \
-    -t bert-base-uncased
-    -n False
-    ...
-
-```
-#### 2. Using NER
-```sh
-python shared_semantics.py \
-    ...
-    --use_ner True
-    ...
-
-python preprocess_dataset.py \
-    ...
-    -n True
-```
-#### 3. Remove Outlier
-```sh
-python shared_semantics.py \
-    ...
-    --threshold True
-    ...
-```
-#### 4. Using Cosine Similarity
-```sh
-python shared_semantics.py \
-    ...
-    --center_type cosine
-    ...
-```
-#### 5. Using Hard Negative Samples
-```sh
-python train_hard_negative.py
-```
 
 ### Train
+
 #### 1. Modify the `shart.sh` file
 ```sh
 python shared_semantics.py \
     --cluster_num 20 \
     --load_dataset toxigen \
-    --load_sent_emb_model toxi-sim \
-    --center_type euclidean \
-    --threshold False
-    --use_ner False
+    --load_sent_emb_model princeton-nlp/unsup-simcse-bert-base-uncased \
+    --module_type m0
 
 python preprocess_dataset.py \
-    -m toxi-sim \
+    -m princeton-nlp \
     -d toxigen_c20 \
     -t bert-base-uncased
-    -n False
-
-python train.py
-## python train_hard_negative.py
-
-EOF
+    -m m0
+...
 ```
-- `cluster_nun` = number of clusters  
+- `cluster_num` = number of clusters  
 - `laod_dataset` = dataset name  
 - `load_sent_emb_model` = sentence imbedding model name  
-- `center_type_euclidean` = `cosine` or `euclidean`  
-- `threshold` = `True` or `False` (remove outliers)
-- `use_ner` = `True` or `False`
+- `module_type` = module type (`m0` - `m3`)
 
 #### 2. Modify the config file
-Modify `train_config.py` or `train_hard_negative_config.py` file.
-
+Modify `train_config.py` file.  
+```python
+type = "m0"
+```
+Set the module type `"m0"` - `"m3"`
 
 #### 3. Start train
 ```bash
@@ -142,20 +101,24 @@ $ ./start.sh
 
 ### Evaluation
 #### 1. Modify the `eval_config.py` file
-Set the model paths.
-- base_model
-- ner_model_dir
-- cosine_model_dir
-- outlier_model_dir
-- hard_negative_model_dir
 
-#### 2. Test start
-```bash
-$ chmod +x eval.sh 
-$ ./eval.sh
+```python 
+dataset = ["ihc_pure_c20"]                # dataset for evaluation
+dataset_name = "ihc_pure"                 # saved model name
+...
+SEED = 42                                 # random seed
+...
+time_step = 100000                        # time step
+...
 ```
 
 
-## Acknowlegement
+#### 2. Test start
+```bash
+$ python ppo_eval.py
+```
+
+---
+### Additinoal Information
 Our code is based on the code from https://github.com/hsannn/sharedcon.  
 Also, hard negative smaple follows the code from https://github.com/Hanyang-HCC-Lab/LAHN.
