@@ -6,7 +6,7 @@
 
 ## About RV-HATE
 <p align="center">
-  <img src="./assets/overview.png" alt="RV-HATE overview" width="650"/>
+  <img src="./assets/overview.png" alt="RV-HATE overview" width="700"/>
 </p>
 
 **RV-HATE**, a reinforced multi-module voting framework for implicit hate speech detection. Unlike prior methods that rely on fixed architectures, RV-HATE dynamically adjusts to dataset-specific linguistic and contextual properties. It integrates four specialized modules—contextual clustering (base model), target tagging, outlier removal, and hard negative sampling—and employs reinforcement learning to optimize their contributions through an adaptive voting mechanism. This design not only enhances detection accuracy across diverse datasets but also provides interpretable insights into how each dataset’s unique features influence hate speech expression, achieving state-of-the-art performance in implicit hate speech detection.
@@ -30,7 +30,7 @@
 - Provides the largest performance boost among modules.
 
 
-## Performance of Detecting Implicit Hate Speech
+## 📌 Performance of Detecting Implicit Hate Speech
 **RV-HATE** outperforms all baselines across five datasets (macro-F1).
 |Methods|IHC|SBIC|DYNA|Hateval|Toxigen|Average|
 |-------|---|----|----|-------|-------|-------|
