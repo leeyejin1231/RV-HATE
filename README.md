@@ -1,33 +1,64 @@
 # RV-HATE: Reinforced Multi-Module Voting for Implicit Hate Speech Detection
 
+<p align="center">
+  <a href="https://github.com/leeyejin1231/RV-HATE/stargazers">
+    <img src="https://img.shields.io/github/stars/leeyejin1231/RV-HATE?style=social" alt="GitHub Repo stars">
+  </a>
+  <a href="https://github.com/leeyejin1231/RV-HATE/commits/main">
+    <img src="https://img.shields.io/github/last-commit/leeyejin1231/RV-HATE" alt="GitHub last commit">
+  </a>
+  <a href="https://github.com/leeyejin1231/RV-HATE/graphs/contributors">
+    <img src="https://img.shields.io/github/contributors/leeyejin1231/RV-HATE?color=orange" alt="GitHub contributors">
+  </a>
+</p>
+
+<div align="center">
+    <a href="https://arxiv.org/abs/2510.10971"><b>📖 </b>Paper Link</a>
+</div><br>
+
 <span style="color: red">❗️***Warning**: this document contains content that may be offensive or upsetting.*</span>
 
 > **RV-HATE**, introduces a reinforcement learning–based multi-module framework that adaptively detects implicit hate speech by modeling dataset-specific linguistic and contextual characteristics.
 
-## About RV-HATE
+## 🗳️ About RV-HATE
 <p align="center">
   <img src="./assets/overview.png" alt="RV-HATE overview" width="700"/>
 </p>
 
-**RV-HATE**, a reinforced multi-module voting framework for implicit hate speech detection. Unlike prior methods that rely on fixed architectures, RV-HATE dynamically adjusts to dataset-specific linguistic and contextual properties. It integrates four specialized modules—contextual clustering (base model), target tagging, outlier removal, and hard negative sampling—and employs reinforcement learning to optimize their contributions through an adaptive voting mechanism. This design not only enhances detection accuracy across diverse datasets but also provides interpretable insights into how each dataset’s unique features influence hate speech expression, achieving state-of-the-art performance in implicit hate speech detection.
+**RV-HATE**, a reinforced multi-module voting framework for **implicit hate speech detection**. Unlike prior methods that rely on fixed architectures, RV-HATE dynamically adjusts to dataset-specific linguistic and contextual properties. 
+
+It integrates **four specialized modules**—contextual clustering (base model), target tagging, outlier removal, and hard negative sampling—and employs reinforcement learning to optimize their contributions through an adaptive voting mechanism. 
+
+This design not only enhances detection accuracy across diverse datasets but also provides interpretable insights into how each dataset’s unique features influence hate speech expression, achieving **state-of-the-art performance** in implicit hate speech detection.
 
 ## ⚙️ Modules
 ### M0 - clustering-based Contrastive Learning
 - Serves as the base module.
 - Uses cosine similarity (instead of Euclidean distance) to better capture semantic relationships in embeddings.
-- Provides strong contextual understanding of hate speech.
+
+  > **Given Text**: Black is idiot  
+  > **Anchor**: White is the best
+
+  👉 Provides strong **contextual understanding** of hate speech
 ### M1 - Target Tagging
 - Identifies explicit hate targets (e.g., nationality, religion, organizations) using NER + GPT-4 tagging.
-- Helps distinguish hate speech from general offensive language.
 - Most effective on datasets rich in implicit or target-based hate, like IHC.
+  > White is the best → [TARGET] **White** is the best
+
+  👉 Helps the model more **clearly identify which specific group is being targeted** with hate.
 ### M2 - Outlier Removal
 - Detects and removes broken or noisy sentences via Interquartile Range (IQR) analysis within clusters.
 - Reduces the negative effect of noisy or incomplete data.
-- Improves data quality and model robustness, especially for IHC and Hateval.
+  > **Outlier**: Yasss brownies & ice cream &##128523; htp://t.co/8qLa3JsglG
+
+  👉 Ensures the model maintains a **clear** and **consistent representation space**
 ### M3 - Hard Negative Sampling
 - Collects difficult negative samples (near the decision boundary) using a queue across batches.
 - Sharpens class boundaries and improves discrimination of subtle or mislabeled cases.
-- Provides the largest performance boost among modules.
+  > **Given Text**: White is the best Hate  
+  > **Hard Negative**: White is like snow non-Hate
+
+  👉 Enhances the ability to **distinguish between similar but subtly different sentences**, thereby improving detection precision
 
 
 ## 📌 Performance of Detecting Implicit Hate Speech
@@ -50,9 +81,10 @@
 - Hateval: 83.44 → +2.33%p over CE baseline.
 - Toxigen: 93.41 → +2.2%p over previous SOTA.  
 
-RV-HATE achieves state-of-the-art performance and demonstrates robust adaptability to diverse datasets.
+**RV-HATE** achieves state-of-the-art performance and demonstrates robust adaptability to diverse datasets.
 
-## 🛠️ Usage
+## 🛠️ Setup
+
 ### Datasets
 Dataset file route: `./raw_datasets/{dataset_name}/`  
 Dataset split: Train, Vaild, Test (8:1:1)  
@@ -63,6 +95,9 @@ We used the `IHC`, `SBIC`, `DYNA`, `Hateval` and `Toxigen` datasets.
 ```bash
 $ pip install -r requirements.txt
 ```
+
+
+##  🚀 Usage
 
 ### Train
 
@@ -116,6 +151,19 @@ time_step = 100000                        # time step
 #### 2. Test start
 ```bash
 $ python ppo_eval.py
+```
+
+## Citation
+```
+@misc{lee2025rvhatereinforcedmultimodulevoting,
+      title={RV-HATE: Reinforced Multi-Module Voting for Implicit Hate Speech Detection}, 
+      author={Yejin Lee and Hyeseon Ahn and Yo-Sub Han},
+      year={2025},
+      eprint={2510.10971},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2510.10971}, 
+}
 ```
 
 ---
