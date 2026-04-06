@@ -13,7 +13,7 @@
 </p>
 
 <div align="center">
-    <a href="https://arxiv.org/abs/2510.10971"><b>📖 </b>Paper Link</a>
+    <a href="https://arxiv.org/abs/2510.10971"><b>📖 </b>Paper Link</a> (ACL 2026)
 </div><br>
 
 <span style="color: red">❗️***Warning**: this document contains content that may be offensive or upsetting.*</span>
